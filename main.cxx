@@ -39,7 +39,7 @@ static void histo(Genoma& g, const std::string& d) {
 }
 
 static void ayuda() {
-    std::cout << "Comandos disponibles: cargar, listar_secuencias, histograma, es_subsecuencia, enmascarar, guardar, salir" << std::endl;
+    std::cout << "Comandos disponibles: cargar, listar_secuencias, histograma, es_subsecuencia, enmascarar, guardar,codificar, decodificar y salir" << std::endl;
 }
 
 static void ayuda1(const std::string& c) {
@@ -49,6 +49,8 @@ static void ayuda1(const std::string& c) {
     else if (c == "es_subsecuencia") std::cout << "Determina si una subsecuencia (secuencia corta de bases) dada por el usuario, existe dentro de las secuencias cargadas en memoria. Si es así, determina la cantidad de veces en las que esta subsecuencia dada se repite. No es necesario indicar el nombre de la secuencia donde se encuentra la repetición (el conteo es general sobre todas las secuencias cargadas en memoria)." << std::endl;
     else if (c == "enmascarar") std::cout << "Enmascara una subsecuencia (secuencia corta de bases) dada por el usuario, si existe. Los elementos que pertenecen a la subsecuencia se enmascaran cambiando cada base individual por el código ’X’. No es necesario indicar el nombre de la secuencia donde se realiza el enmascarado (el proceso es general sobre todas las secuencias cargadas en memoria)." << std::endl;
     else if (c == "guardar") std::cout << "Guarda en el archivo nombre_archivo las secuencias cargadas en memoria. Se debe tener en cuenta la justificación (de líneas) de cada secuencia inicial, así como las posibles modificaciones que hayan sufrir las secuencias en memoria (después de enmascarar)." << std::endl;
+	else if (c == "codificar") std::cout << "Uso: codificar nombre_archivo.fabin" << std::endl;
+    else if (c == "decodificar") std::cout << "Uso: decodificar nombre_archivo.fabin" << std::endl;
     else if (c == "salir") std::cout << "Termina la ejecución de la aplicación." << std::endl;
     else std::cout << "Comando desconocido" << std::endl;
 }
