@@ -1,9 +1,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <sstream>
 #include "Genoma.h"
 #include "FASTA.hxx"
 #include "CodificadorFASTA.h"
+#include "GrafoSecuencia.h"
 static const std::string ORDEN_HISTO = "ACGTURYKMSWBDHVNX-";
 
 static void partir(const std::string& s, std::string& a, std::string& b) {
@@ -39,7 +41,7 @@ static void histo(Genoma& g, const std::string& d) {
 }
 
 static void ayuda() {
-    std::cout << "Comandos disponibles: cargar, listar_secuencias, histograma, es_subsecuencia, enmascarar, guardar,codificar, decodificar y salir" << std::endl;
+    std::cout << "Comandos disponibles: cargar, listar_secuencias, histograma, es_subsecuencia, enmascarar, guardar,codificar, decodificar, ruta_mas_corta, base_remota y salir" << std::endl;
 }
 
 static void ayuda1(const std::string& c) {
@@ -51,6 +53,8 @@ static void ayuda1(const std::string& c) {
     else if (c == "guardar") std::cout << "Guarda en el archivo nombre_archivo las secuencias cargadas en memoria. Se debe tener en cuenta la justificación (de líneas) de cada secuencia inicial, así como las posibles modificaciones que hayan sufrir las secuencias en memoria (después de enmascarar)." << std::endl;
 	else if (c == "codificar") std::cout << "Uso: codificar nombre_archivo.fabin" << std::endl;
     else if (c == "decodificar") std::cout << "Uso: decodificar nombre_archivo.fabin" << std::endl;
+    else if (c == "ruta_mas_corta") std::cout << "El comando debe imprimir en pantalla la secuencia de vértices (bases) del grafo que describen la ruta más corta entre la base ubicada en la posición [i ,j ] de la matriz de la secuencia 7 descripcion_secuencia y la base ubicada en la posición [x ,y ] de la misma matriz. Así mismo, debe imprimir el costo total de la ruta, teniendo en cuenta el peso que tiene cada conexión entre bases." << std::endl;
+    else if (c == "base_remota") std::cout << "Para la base ubicada en la posición [i ,j ] de la matriz de la secuencia descripcion_secuencia , el comando busca la ubicación de la misma base (misma letra) más lejana dentro de la matriz. Para esta base remota, el comando debe imprimir en pantalla su ubicación, la secuencia de vértices (bases) que describen la ruta entre la base origen y la base remota, y el costo total de la ruta, teniendo en cuenta el peso que tiene cada conexión entre bases." << std::endl;
     else if (c == "salir") std::cout << "Termina la ejecución de la aplicación." << std::endl;
     else std::cout << "Comando desconocido" << std::endl;
 }
@@ -143,6 +147,78 @@ int main() {
                     std::cout << "Secuencias decodificadas desde " << arg << " y cargadas en memoria" << std::endl;
                 }
             }
+        }
+        else if (cmd == "ruta_mas_corta") {
+            std::istringstream iss(arg);
+            std::string nombre;
+            int i, j, x, y;
+            if (!(iss >> nombre >> i >> j >> x >> y)) {
+                std::cout << "Uso: ruta_mas_corta nombre_secuencia i j x y" << std::endl;
+                continue;
+            }
+
+            Secuencia* s = g.EncontrarSecuencia(nombre);
+            if (!s) {
+                std::cout << "La secuencia " << nombre << " no existe." << std::endl;
+                continue;
+            }
+
+            GrafoSecuencia gs(s);
+            ResultadoRuta res = gs.RutaMasCorta(i, j, x, y);
+            int filas = (int)(s->bases.size() / s->ancho) + (s->bases.size() % s->ancho ? 1 : 0);
+            int columnas = s->ancho;
+            if (i < 0 || j < 0 || i >= filas || j >= columnas || i * columnas + j >= (int)s->bases.size()) {
+                std::cout << "La base en la posición [" << i << "," << j << "] no existe." << std::endl;
+                continue;
+            }
+            if (x < 0 || y < 0 || x >= filas || y >= columnas || x * columnas + y >= (int)s->bases.size()) {
+                std::cout << "La base en la posición [" << x << "," << y << "] no existe." << std::endl;
+                continue;
+            }
+
+            if (!res.existe) {
+                std::cout << "No existe ruta entre las posiciones dadas." << std::endl;
+                continue;
+            }
+
+            std::cout << "Para la secuencia " << nombre << ", la ruta más corta entre la base "
+                      << res.baseOrigen << " en [" << i << "," << j << "] y la base "
+                      << res.baseDestino << " en [" << x << "," << y << "] es: " << res.camino << std::endl;
+            std::cout << "El costo total de la ruta es: " << res.costo << std::endl;
+        }
+        else if (cmd == "base_remota") {
+            std::istringstream iss(arg);
+            std::string nombre; int i, j;
+            if (!(iss >> nombre >> i >> j)) {
+                std::cout << "Uso: base_remota nombre_secuencia i j" << std::endl;
+                continue;
+            }
+
+            Secuencia* s = g.EncontrarSecuencia(nombre);
+            if (!s) {
+                std::cout << "La secuencia " << nombre << " no existe." << std::endl;
+                continue;
+            }
+
+            GrafoSecuencia gs(s);
+            ResultadoRuta r = gs.BaseRemota(i, j);
+
+            int filas = (int)(s->bases.size() / s->ancho) + (s->bases.size() % s->ancho ? 1 : 0);
+            int columnas = s->ancho;
+            if (i < 0 || j < 0 || i >= filas || j >= columnas || i * columnas + j >= (int)s->bases.size()) {
+                std::cout << "La base en la posición [" << i << "," << j << "] no existe." << std::endl;
+                continue;
+            }
+
+            if (!r.existe) {
+                std::cout << "No se encontró una base remota válida." << std::endl;
+                continue;
+            }
+
+            std::cout << "Para la secuencia " << nombre << ", la base remota está ubicada en [" << r.fila << "," << r.col
+                      << "], y la ruta entre la base en [" << i << "," << j << "] y la base remota en [" << r.fila << "," << r.col
+                      << "] es: " << r.camino << std::endl;
+            std::cout << "El costo total de la ruta es: " << r.costo << std::endl;
         }
         else { std::cout << "Comando desconocido" << std::endl; }
     }
